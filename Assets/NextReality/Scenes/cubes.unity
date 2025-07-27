@@ -1245,12 +1245,13 @@ GameObject:
   - component: {fileID: 377143904}
   - component: {fileID: 377143903}
   - component: {fileID: 377143901}
-  - component: {fileID: 377143900}
   - component: {fileID: 377143899}
   - component: {fileID: 377143898}
   - component: {fileID: 377143905}
   - component: {fileID: 377143906}
   - component: {fileID: 377143907}
+  - component: {fileID: 377143909}
+  - component: {fileID: 377143908}
   m_Layer: 0
   m_Name: Manager
   m_TagString: Untagged
@@ -1398,22 +1399,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   panel: {fileID: 895833600}
---- !u!114 &377143900
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 377143895}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dfbf5b80f73ec45c58896e72fb2a54b8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  objectManager: {fileID: 377143904}
-  networkManager: {fileID: 377143903}
-  spawnCooldown: 1.5
-  pinchThreshold: 0.03
 --- !u!114 &377143901
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1481,9 +1466,16 @@ MonoBehaviour:
   closeBtn: {fileID: 738947540}
   statusIndicator: {fileID: 127718314}
   recenterQrBtn: {fileID: 1961871586}
+  voiceSaveSceneBtn: {fileID: 0}
+  voiceLoadSceneBtn: {fileID: 0}
+  voiceClearSceneBtn: {fileID: 0}
+  voiceRecenterBtn: {fileID: 0}
+  voiceStatusIndicator: {fileID: 0}
+  voiceStatusText: {fileID: 0}
   networkManager: {fileID: 377143903}
   sceneDataHandler: {fileID: 377143898}
   qrManager: {fileID: 549834999}
+  voiceCommandManager: {fileID: 0}
 --- !u!114 &377143906
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1499,6 +1491,7 @@ MonoBehaviour:
   qrManager: {fileID: 549834999}
   sceneHandler: {fileID: 377143898}
   settingsUI: {fileID: 377143905}
+  voiceStatusIndicator: {fileID: 0}
 --- !u!114 &377143907
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1511,6 +1504,54 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03381ccb4184243e6b755575547c7660, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &377143908
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 377143895}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a06ce6a80171a4c54808c6fab1fb8d81, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  objectManager: {fileID: 377143904}
+  networkManager: {fileID: 377143903}
+  spawnCooldown: 1.5
+  palmUpThreshold: 0.8
+  spawnOffset: 0.2
+  grabDistance: 0.3
+  grabThreshold: 0.03
+  grabbableLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  dualHandScaleThreshold: 0.05
+  minScale: 0.1
+  maxScale: 10
+  scaleSensitivity: 1
+--- !u!114 &377143909
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 377143895}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbd433d8af4ae4f4e99f6ffe401ce5be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  voiceCommandManager: {fileID: 377143906}
+  settingsUI: {fileID: 377143905}
+  enableKeyboardShortcuts: 1
+  saveSceneKey: 282
+  loadSceneKey: 283
+  clearSceneKey: 284
+  recenterKey: 285
+  settingsKey: 286
+  isVoiceAvailable: 0
+  isFallbackActive: 0
 --- !u!1 &421799997
 GameObject:
   m_ObjectHideFlags: 0
