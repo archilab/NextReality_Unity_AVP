@@ -23,7 +23,7 @@ import AVFoundation
 
     private func startSession() {
         recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
-        guard let inputNode = audioEngine.inputNode else { return }
+        let inputNode = audioEngine.inputNode
         guard let recognitionRequest = recognitionRequest else { return }
 
         recognitionRequest.shouldReportPartialResults = true
