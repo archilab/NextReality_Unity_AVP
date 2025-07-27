@@ -12,7 +12,7 @@ A Unity-based mixed reality application that enables collaborative 3D cube creat
 - **Extensibility**: Modular architecture for easy feature additions
 
 ### Key Features
-- Real-time 3D cube spawning and manipulation
+- **Enhanced Gesture System**: Hand grab gestures for moving/rotating, dual hand pinch for natural scaling
 - Voice command system with Apple Speech Framework
 - Multi-device synchronization via WebSocket
 - QR code-based spatial anchoring
@@ -43,7 +43,8 @@ AVP_Cubes/
 
 ### Core Components
 
-#### 1. **Object Management System**
+#### 1. **Enhanced Gesture System**
+- `EnhancedGestureInteractor.cs`: Advanced hand gesture recognition and manipulation
 - `ObjectManager.cs`: Singleton managing cube lifecycle (spawn, update, delete, clear)
 - `SpawnCube.cs`: Handles cube instantiation and positioning
 - `MaterialLibrary.cs`: Dynamic material management and swapping
@@ -71,7 +72,7 @@ AVP_Cubes/
 graph TD
     A[User Input] --> B{Input Type}
     B -->|Voice| C[AppleSpeechRecognizer]
-    B -->|Gesture| D[GestureInteractor]
+    B -->|Hand Gesture| D[EnhancedGestureInteractor]
     B -->|UI| E[SettingsUIManager]
     
     C --> F[VoiceCommandManager]
@@ -140,17 +141,17 @@ graph TD
 
 ## 🎮 Usage
 
+### Enhanced Gesture Controls
+- **Palm-Up Gesture**: Spawn cube at hand position
+- **Hand Grab Gesture**: Grab and move/rotate cubes with natural hand movement
+- **Dual Hand Pinch**: Scale objects naturally by changing distance between hands
+
 ### Voice Commands
 - **"Save Scene"**: Persist current scene state
 - **"Scene Load"**: Load scene from file picker
 - **"Set QR"**: Recenter using QR code
 - **"Open Settings"**: Show settings panel
 - **"Clear Scene"**: Remove all cubes
-
-### Gesture Controls
-- **Palm-Up**: Spawn cube at hand position
-- **Pinch & Drag**: Move and resize cubes
-- **Pinch Distance**: Scale cube size
 
 ### Fallback Controls
 - **F1-F5**: Keyboard shortcuts for voice commands
@@ -169,7 +170,7 @@ graph TD
       "id": "cube_001",
       "type": "cube",
       "position": {"x": 0.0, "y": 1.0, "z": 0.0},
-      "rotation": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "rotation": {"x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0},
       "scale": {"x": 1.0, "y": 1.0, "z": 1.0},
       "material": "marble",
       "color": "#FFFFFF"
@@ -185,6 +186,7 @@ graph TD
   "objectId": "cube_001",
   "data": {
     "position": {"x": 0.0, "y": 1.0, "z": 0.0},
+    "rotation": {"x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0},
     "scale": {"x": 1.0, "y": 1.0, "z": 1.0}
   }
 }
@@ -208,6 +210,12 @@ graph TD
 - **Sample Rate**: 16kHz
 - **Fallback**: Editor text input, keyboard shortcuts
 
+### Gesture Recognition
+- **Palm-Up Threshold**: 0.8 (sensitivity)
+- **Grab Distance**: 0.3m (interaction range)
+- **Dual Hand Scale Threshold**: 0.05m (pinch sensitivity)
+- **Scale Range**: 0.1x to 10x (min/max scaling)
+
 ### Spatial Anchoring
 - **QR Code Size**: Minimum 10cm
 - **Anchor Persistence**: Session-based
@@ -217,28 +225,34 @@ graph TD
 
 ### Common Issues
 
-1. **Voice Recognition Not Working**
+1. **Gesture Recognition Not Working**
+   - Check hand tracking permissions
+   - Verify XR Hands subsystem is active
+   - Ensure proper lighting conditions
+   - Use fallback methods (keyboard/UI)
+
+2. **Voice Recognition Not Working**
    - Check microphone permissions
    - Verify platform support (iOS/VisionOS/macOS)
    - Use fallback methods (keyboard/UI)
 
-2. **Network Synchronization Issues**
+3. **Network Synchronization Issues**
    - Verify server is running
    - Check IP/port configuration
    - Ensure devices are on same network
 
-3. **Spatial Drift**
+4. **Spatial Drift**
    - Use QR code recentering
    - Check lighting conditions
    - Verify AR anchor creation
 
-4. **Build Errors**
+5. **Build Errors**
    - Update Unity to latest LTS version
    - Verify VisionOS SDK installation
    - Check native plugin integration
 
 ### Debug Information
-- Enable detailed logging in `VoiceCommandManager.cs`
+- Enable detailed logging in `EnhancedGestureInteractor.cs`
 - Check Console for network status
 - Monitor WebSocket server logs
 
@@ -278,6 +292,7 @@ graph TD
 - `NativeSpeechPlugin/README.md`: Native plugin integration guide
 
 ### API Reference
+- **EnhancedGestureInteractor**: Advanced gesture recognition and manipulation
 - **ObjectManager**: Cube lifecycle management
 - **VoiceCommandManager**: Command processing system
 - **AsyncNetworkManager**: Network synchronization

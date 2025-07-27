@@ -170,6 +170,18 @@ public class ObjectManager : MonoBehaviour
                 pos[2].Value<float>()
             );
         }
+        
+        // Rotation (new support for enhanced gestures)
+        if (p["rotation"] is JArray rot && rot.Count == 4)
+        {
+            go.transform.rotation = new Quaternion(
+                rot[0].Value<float>(),
+                rot[1].Value<float>(),
+                rot[2].Value<float>(),
+                rot[3].Value<float>()
+            );
+        }
+        
         // Scale
         if (p["scale"] is JArray scl && scl.Count == 3)
         {
@@ -179,6 +191,7 @@ public class ObjectManager : MonoBehaviour
                 scl[2].Value<float>()
             );
         }
+        
         // Color
         if (p["color"] is JObject col)
         {
@@ -192,6 +205,7 @@ public class ObjectManager : MonoBehaviour
                 );
             }
         }
+        
         // Material by name
         if (p["materialName"] != null && go.TryGetComponent<Renderer>(out var rend2))
         {

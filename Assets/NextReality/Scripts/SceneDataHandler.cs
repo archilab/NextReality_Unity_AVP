@@ -26,6 +26,7 @@ public class SceneDataHandler : MonoBehaviour
     {
         public string id;
         public float[] pos;
+        public float[] rot; // Added rotation support
         public float[] scale;
     }
 
@@ -44,9 +45,11 @@ public class SceneDataHandler : MonoBehaviour
         foreach (var kv in objectManager.AllObjects)
         {
             var go = kv.Value;
+            var rotation = go.transform.rotation;
             sd.cubes.Add(new CubeData {
                 id    = kv.Key,
                 pos   = new[] { go.transform.position.x, go.transform.position.y, go.transform.position.z },
+                rot   = new[] { rotation.x, rotation.y, rotation.z, rotation.w }, // Save rotation
                 scale = new[] { go.transform.localScale.x, go.transform.localScale.y, go.transform.localScale.z }
             });
         }
@@ -77,6 +80,13 @@ public class SceneDataHandler : MonoBehaviour
                 ["position"] = new JArray(cd.pos[0], cd.pos[1], cd.pos[2]),
                 ["scale"]    = new JArray(cd.scale[0], cd.scale[1], cd.scale[2])
             };
+            
+            // Add rotation if available (backward compatibility)
+            if (cd.rot != null && cd.rot.Length == 4)
+            {
+                p["rotation"] = new JArray(cd.rot[0], cd.rot[1], cd.rot[2], cd.rot[3]);
+            }
+            
             var msg = new NetworkMessage {
                 action     = "spawn",
                 id         = cd.id,
