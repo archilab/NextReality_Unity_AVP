@@ -22,17 +22,23 @@ public class SettingsUIManager : MonoBehaviour
     public Image  statusIndicator;
     public Button recenterQrBtn;
 
-
-
+    [Header("Voice Command Fallback Buttons")]
+    public Button voiceSaveSceneBtn;
+    public Button voiceLoadSceneBtn;
+    public Button voiceClearSceneBtn;
+    public Button voiceRecenterBtn;
+    public GameObject voiceStatusIndicator;
+    public TextMeshProUGUI voiceStatusText;
 
     [Header("Systems")]
     public AsyncNetworkManager networkManager;
     public SceneDataHandler    sceneDataHandler;
     public QRManager           qrManager;           // make sure this is assigned    
+    public VoiceCommandManager voiceCommandManager;  // Reference to voice command manager
+    
     private readonly Color green  = Color.green;
     private readonly Color yellow = Color.yellow;
     private readonly Color red    = Color.red;
-
 
     void Awake()
     {
@@ -50,8 +56,27 @@ public class SettingsUIManager : MonoBehaviour
         closeBtn     .onClick.AddListener(Hide);
         recenterQrBtn.onClick.AddListener(() => qrManager.RecenterFromQR());
 
+        // Voice command fallback buttons
+        if (voiceSaveSceneBtn != null)
+            voiceSaveSceneBtn.onClick.AddListener(() => voiceCommandManager?.SaveScene());
+        if (voiceLoadSceneBtn != null)
+            voiceLoadSceneBtn.onClick.AddListener(() => voiceCommandManager?.LoadScene());
+        if (voiceClearSceneBtn != null)
+            voiceClearSceneBtn.onClick.AddListener(() => voiceCommandManager?.ClearScene());
+        if (voiceRecenterBtn != null)
+            voiceRecenterBtn.onClick.AddListener(() => voiceCommandManager?.RecenterQR());
+
         // Update indicator on connection events
         networkManager.OnConnectionStateChanged += UpdateStatusIndicator;
+    }
+
+    void Start()
+    {
+        // Initialize voice status if available
+        if (voiceCommandManager != null)
+        {
+            UpdateVoiceStatus();
+        }
     }
 
     void OnDestroy()
@@ -66,6 +91,7 @@ public class SettingsUIManager : MonoBehaviour
     {
         settingsCanvas.SetActive(true);
         UpdateStatusIndicator(networkManager.State);
+        UpdateVoiceStatus();
     }
 
     /// <summary>
@@ -100,4 +126,32 @@ public class SettingsUIManager : MonoBehaviour
             _ =>                                        red
         };
     }
+
+    private void UpdateVoiceStatus()
+    {
+        if (voiceCommandManager != null && voiceStatusIndicator != null)
+        {
+            bool isVoiceAvailable = voiceCommandManager.GetComponent<AppleSpeechRecognizer>()?.IsRecognitionAvailable ?? false;
+            
+            // Update status indicator
+            var renderer = voiceStatusIndicator.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                renderer.material.color = isVoiceAvailable ? green : red;
+            }
+            
+            // Update status text
+            if (voiceStatusText != null)
+            {
+                voiceStatusText.text = isVoiceAvailable ? "Voice: Available" : "Voice: Unavailable";
+                voiceStatusText.color = isVoiceAvailable ? green : red;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Public methods that can be called from voice commands
+    /// </summary>
+    public void OpenSettings() => Show();
+    public void CloseSettings() => Hide();
 }
