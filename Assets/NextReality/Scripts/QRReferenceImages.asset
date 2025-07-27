@@ -16,4 +16,14 @@ MonoBehaviour:
   m_GuidHigh: 16961973823547658139
   m_DataStore:
     m_Storage: []
-  m_Images: []
+  m_Images:
+  - m_SerializedGuid:
+      m_GuidLow: 4668361183037965535
+      m_GuidHigh: 1514025557346961338
+    m_SerializedTextureGuid:
+      m_GuidLow: 6073006144103191358
+      m_GuidHigh: 8044276615833613416
+    m_Size: {x: 0, y: 0}
+    m_SpecifySize: 0
+    m_Name: QR-instation
+    m_Texture: {fileID: 0}
