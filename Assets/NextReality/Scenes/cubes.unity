@@ -618,7 +618,7 @@ Transform:
   m_GameObject: {fileID: 207844918}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 1.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2298,11 +2298,11 @@ Transform:
   m_GameObject: {fileID: 595690332}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 1}
+  m_LocalPosition: {x: 0.12785, y: 0.075, z: 0.89026}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 923802630}
+  m_Father: {fileID: 6340003985639295159}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &595690334
 MonoBehaviour:
@@ -3281,7 +3281,6 @@ Transform:
   m_Children:
   - {fileID: 2028125135}
   - {fileID: 895833604}
-  - {fileID: 595690333}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &923802631
@@ -5235,7 +5234,7 @@ MonoBehaviour:
   m_Dimensions: {x: 1, y: 1, z: 1}
   m_ScaleWithWindow: 1
   m_IsUniformScale: 0
-  m_OutputConfiguration: {fileID: 11400000, guid: 724776171a2184c16b69358d20ac9b90, type: 2}
+  m_OutputConfiguration: {fileID: 11400000, guid: ec3b679ba84014cd8a0cd82f9fdca72c, type: 2}
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -5260,6 +5259,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: OriginMarker
       objectReference: {fileID: 0}
+    - target: {fileID: 7225987069215179704, guid: e809322720b8545d3b97c430279844db, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 030f50e872eb74dd3977e683c8de94cd, type: 2}
     - target: {fileID: 7790958954504705867, guid: e809322720b8545d3b97c430279844db, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -5398,7 +5401,8 @@ Transform:
   m_LocalPosition: {x: -0.12785, y: -0.075, z: 0.109740004}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 595690333}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6858365359361122612
@@ -5411,6 +5415,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6340003985639295159}
   - component: {fileID: 5388978636613337608}
+  - component: {fileID: 6858365359361122613}
   m_Layer: 0
   m_Name: VolumeCamera
   m_TagString: Untagged
@@ -5418,6 +5423,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &6858365359361122613
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6858365359361122612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 250837075, guid: c011290a04936583ed373d28968a0c1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  BoundedVolumeDimensions: {x: 1, y: 1, z: 1}
+  UnboundedClippingSize: {x: 100, y: 100, z: 100}
+  ClippingScale: {x: 1, y: 1, z: 1}
+  ClippingOffset: {x: 0, y: 0, z: 0}
 --- !u!4 &6888182251288258468
 Transform:
   m_ObjectHideFlags: 0
