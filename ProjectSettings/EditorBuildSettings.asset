@@ -5,10 +5,10 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
+  - enabled: 1
     path: Assets/NextReality/Scenes/cubes.unity
     guid: ee31ad9d7bf1b413c940b67cb9bc728b
-  - enabled: 1
+  - enabled: 0
     path: Assets/NextReality/Scenes/base.unity
     guid: 233abc97ac5ac41d9b224c1b018f1e3e
   m_configObjects:
