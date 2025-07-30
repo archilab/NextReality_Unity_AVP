@@ -5,9 +5,9 @@ using Newtonsoft.Json.Linq;
 
 /// <summary>
 /// Enhanced gesture system for 3D object manipulation:
+/// - Thumb-finger tap for spawning cubes
 /// - Hand grab gestures for moving and rotating objects
 /// - Dual hand pinch gestures for natural scaling
-/// - Palm-up gesture for spawning cubes
 /// Based on PolySpatial Manipulation patterns
 /// </summary>
 public class EnhancedGestureInteractor : MonoBehaviour
@@ -19,12 +19,14 @@ public class EnhancedGestureInteractor : MonoBehaviour
 
     [Header("Spawn Settings")]
     public float spawnCooldown = 1.5f;
-    public float palmUpThreshold = 0.8f;
-    public float spawnOffset = 0.2f;
+    public float tapThreshold = 0.03f;
+    public float tapDuration = 0.3f; // Maximum time for a tap gesture
+    public float spawnOffset = 0.1f;
 
     [Header("Grab Settings")]
     public float grabDistance = 0.3f;
     public float grabThreshold = 0.03f;
+    public float rotationSensitivity = 1f;
     public LayerMask grabbableLayer = -1;
 
     [Header("Dual Hand Scaling")]
@@ -35,6 +37,8 @@ public class EnhancedGestureInteractor : MonoBehaviour
 
     // Spawn tracking
     private float lastSpawnTime;
+    private bool rightHandTapStarted = false;
+    private float rightHandTapStartTime = 0f;
 
     // Grab tracking
     private GameObject grabbedObject;
@@ -42,6 +46,8 @@ public class EnhancedGestureInteractor : MonoBehaviour
     private Vector3 grabOffset;
     private Quaternion grabRotationOffset;
     private bool isGrabbing = false;
+    private Vector3 initialGrabPosition;
+    private Quaternion initialGrabRotation;
 
     // Dual hand scaling
     private bool isDualHandScaling = false;
@@ -62,8 +68,8 @@ public class EnhancedGestureInteractor : MonoBehaviour
 
         UpdateHandTracking();
         
-        // 1. Palm-up spawn gesture
-        HandlePalmUpSpawn();
+        // 1. Thumb-finger tap spawn gesture (right hand only)
+        HandleTapSpawn();
         
         // 2. Single hand grab for move/rotate
         HandleSingleHandGrab();
@@ -81,21 +87,31 @@ public class EnhancedGestureInteractor : MonoBehaviour
         rightHandTracked = rightHand.isTracked;
     }
 
-    private void HandlePalmUpSpawn()
+    private void HandleTapSpawn()
     {
-        // Check both hands for palm-up gesture
-        if (TryGetPalmUpGesture(leftHand, out Vector3 leftSpawnPos) && 
-            Time.time - lastSpawnTime > spawnCooldown)
+        if (!rightHandTracked) return;
+
+        // Check for thumb-finger tap gesture on right hand
+        if (TryGetThumbFingerTap(rightHand, out Vector3 tapPosition, out bool tapStarted, out bool tapCompleted))
         {
-            SpawnCube(leftSpawnPos);
-            return;
+            if (tapStarted)
+            {
+                rightHandTapStarted = true;
+                rightHandTapStartTime = Time.time;
+            }
+            
+            if (tapCompleted && rightHandTapStarted && Time.time - lastSpawnTime > spawnCooldown)
+            {
+                // Spawn object at tap position
+                Vector3 spawnPos = tapPosition + Vector3.up * spawnOffset;
+                SpawnObject(spawnPos);
+                rightHandTapStarted = false;
+            }
         }
-        
-        if (TryGetPalmUpGesture(rightHand, out Vector3 rightSpawnPos) && 
-            Time.time - lastSpawnTime > spawnCooldown)
+        else
         {
-            SpawnCube(rightSpawnPos);
-            return;
+            // Reset tap state if fingers are too far apart
+            rightHandTapStarted = false;
         }
     }
 
@@ -149,22 +165,50 @@ public class EnhancedGestureInteractor : MonoBehaviour
         }
     }
 
-    private bool TryGetPalmUpGesture(XRHand hand, out Vector3 spawnPosition)
+    // Try to detect a thumb-finger tap gesture
+    private bool TryGetThumbFingerTap(XRHand hand, out Vector3 position, out bool tapStarted, out bool tapCompleted)
     {
-        spawnPosition = Vector3.zero;
-        
+        position = Vector3.zero;
+        tapStarted = false;
+        tapCompleted = false;
+
         if (!hand.isTracked) return false;
+
+        var thumb = hand.GetJoint(XRHandJointID.ThumbTip);
+        var index = hand.GetJoint(XRHandJointID.IndexTip);
         
-        var palmJoint = hand.GetJoint(XRHandJointID.Palm);
-        if (!palmJoint.TryGetPose(out Pose palmPose)) return false;
-        
-        Vector3 palmUp = palmPose.rotation * Vector3.up;
-        if (Vector3.Dot(palmUp, Vector3.up) > palmUpThreshold)
+        if (!thumb.TryGetPose(out Pose tPose) || !index.TryGetPose(out Pose iPose))
+            return false;
+
+        float distance = Vector3.Distance(tPose.position, iPose.position);
+        position = (tPose.position + iPose.position) * 0.5f;
+
+        // Check if fingers are close enough for a tap
+        if (distance < tapThreshold)
         {
-            spawnPosition = palmPose.position + palmUp * spawnOffset;
-            return true;
+            // Check if this is a new tap
+            if (!rightHandTapStarted)
+            {
+                tapStarted = true;
+            }
+            
+            // Check if tap duration is within acceptable range
+            if (rightHandTapStarted && Time.time - rightHandTapStartTime <= tapDuration)
+            {
+                // Continue tap
+                return true;
+            }
         }
-        
+        else
+        {
+            // Fingers separated - check if this completes a tap
+            if (rightHandTapStarted && Time.time - rightHandTapStartTime <= tapDuration)
+            {
+                tapCompleted = true;
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -232,15 +276,15 @@ public class EnhancedGestureInteractor : MonoBehaviour
         return false;
     }
 
-    private void SpawnCube(Vector3 position)
+    private void SpawnObject(Vector3 position)
     {
-        string cubeId = objectManager.SpawnCube(position);
+        string objectId = objectManager.SpawnObject(position);
         
         // Broadcast spawn
         var spawnMsg = new NetworkMessage {
             action = "spawn",
-            id = cubeId,
-            objectType = "Cube",
+            id = objectId,
+            objectType = "Object",
             parameters = new JObject {
                 ["position"] = new JArray(position.x, position.y, position.z),
                 ["scale"] = new JArray(1f, 1f, 1f)
@@ -249,7 +293,7 @@ public class EnhancedGestureInteractor : MonoBehaviour
         networkManager.Enqueue(spawnMsg);
         
         lastSpawnTime = Time.time;
-        Debug.Log($"[EnhancedGesture] Spawned cube at {position}");
+        Debug.Log($"[EnhancedGesture] Spawned object at {position}");
     }
 
     private void HandleGrabGesture(Vector3 grabPosition, bool grabActive)
@@ -280,7 +324,12 @@ public class EnhancedGestureInteractor : MonoBehaviour
         grabbedObject = objectToGrab;
         grabbedObjectId = objectId;
         grabOffset = objectToGrab.transform.position - grabPosition;
-        grabRotationOffset = Quaternion.Inverse(Quaternion.LookRotation(grabPosition - objectToGrab.transform.position)) * objectToGrab.transform.rotation;
+        
+        // Store initial rotation for relative rotation calculation
+        initialGrabPosition = grabPosition;
+        initialGrabRotation = objectToGrab.transform.rotation;
+        grabRotationOffset = objectToGrab.transform.rotation;
+        
         isGrabbing = true;
         
         Debug.Log($"[EnhancedGesture] Started grabbing {objectId}");
@@ -294,9 +343,15 @@ public class EnhancedGestureInteractor : MonoBehaviour
         Vector3 newPosition = grabPosition + grabOffset;
         grabbedObject.transform.position = newPosition;
         
-        // Update rotation based on hand movement
-        Quaternion newRotation = Quaternion.LookRotation(grabPosition - grabbedObject.transform.position) * grabRotationOffset;
-        grabbedObject.transform.rotation = newRotation;
+        // Calculate rotation based on hand movement
+        Vector3 handMovement = grabPosition - initialGrabPosition;
+        if (handMovement.magnitude > 0.01f)
+        {
+            // Create rotation based on hand movement direction
+            Quaternion movementRotation = Quaternion.LookRotation(handMovement.normalized, Vector3.up);
+            Quaternion newRotation = Quaternion.Slerp(initialGrabRotation, movementRotation, rotationSensitivity * Time.deltaTime);
+            grabbedObject.transform.rotation = newRotation;
+        }
         
         // Broadcast update
         var updateMsg = new NetworkMessage {
@@ -305,7 +360,7 @@ public class EnhancedGestureInteractor : MonoBehaviour
             objectType = "Cube",
             parameters = new JObject {
                 ["position"] = new JArray(newPosition.x, newPosition.y, newPosition.z),
-                ["rotation"] = new JArray(newRotation.x, newRotation.y, newRotation.z, newRotation.w),
+                ["rotation"] = new JArray(grabbedObject.transform.rotation.x, grabbedObject.transform.rotation.y, grabbedObject.transform.rotation.z, grabbedObject.transform.rotation.w),
                 ["scale"] = new JArray(grabbedObject.transform.localScale.x, grabbedObject.transform.localScale.y, grabbedObject.transform.localScale.z)
             }
         };

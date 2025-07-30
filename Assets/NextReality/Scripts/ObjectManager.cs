@@ -17,6 +17,10 @@ public class ObjectManager : MonoBehaviour
     [Tooltip("Assign prefabs by type name (e.g. name the Cube prefab 'Cube')")]
     public List<GameObject> prefabList;
 
+    [Header("Spawn Settings")]
+    [Tooltip("Index of the default prefab to spawn (0 = first in list)")]
+    public int defaultPrefabIndex = 0;
+
     // Map typeName -> prefab
     private Dictionary<string, GameObject> prefabsByType;
 
@@ -38,32 +42,93 @@ public class ObjectManager : MonoBehaviour
             prefabsByType[go.name] = go;
         }
 
-        if (!prefabsByType.ContainsKey("Cube"))
-            Debug.LogWarning("[ObjectManager] No 'Cube' prefab assigned in prefabList.");
+        // Validate default prefab index
+        if (prefabList.Count == 0)
+        {
+            Debug.LogError("[ObjectManager] No prefabs assigned in prefabList!");
+        }
+        else if (defaultPrefabIndex >= prefabList.Count)
+        {
+            Debug.LogWarning($"[ObjectManager] Default prefab index {defaultPrefabIndex} is out of range. Using index 0.");
+            defaultPrefabIndex = 0;
+        }
     }
 
     /// <summary>
-    /// Locally spawn a Cube at the given position.
+    /// Locally spawn an object at the given position using the default prefab.
     /// Returns the generated GUID for network sync.
     /// </summary>
-    public string SpawnCube(Vector3 position)
+    public string SpawnObject(Vector3 position)
     {
-        // Generate unique ID
-        string id = Guid.NewGuid().ToString();
+        return SpawnObject(position, defaultPrefabIndex);
+    }
 
-        // Find the Cube prefab
-        if (!prefabsByType.TryGetValue("Cube", out var prefab))
+    /// <summary>
+    /// Locally spawn an object at the given position using the specified prefab index.
+    /// Returns the generated GUID for network sync.
+    /// </summary>
+    public string SpawnObject(Vector3 position, int prefabIndex)
+    {
+        // Validate prefab index
+        if (prefabIndex < 0 || prefabIndex >= prefabList.Count)
         {
-            Debug.LogError("[ObjectManager] Cannot spawn Cube, prefab not found.");
+            Debug.LogError($"[ObjectManager] Invalid prefab index: {prefabIndex}. Using default index {defaultPrefabIndex}.");
+            prefabIndex = defaultPrefabIndex;
+        }
+
+        // Get the prefab
+        GameObject prefab = prefabList[prefabIndex];
+        if (prefab == null)
+        {
+            Debug.LogError($"[ObjectManager] Prefab at index {prefabIndex} is null.");
             return null;
         }
 
+        // Generate unique ID
+        string id = Guid.NewGuid().ToString();
+
         // Instantiate locally
         var go = Instantiate(prefab, position, Quaternion.identity);
-        go.name = $"Cube_{id}";
+        go.name = $"{prefab.name}_{id}";
         objects[id] = go;
 
+        Debug.Log($"[ObjectManager] Spawned {prefab.name} at {position} with ID {id}");
         return id;
+    }
+
+    /// <summary>
+    /// Locally spawn an object at the given position using the specified prefab name.
+    /// Returns the generated GUID for network sync.
+    /// </summary>
+    public string SpawnObject(Vector3 position, string prefabName)
+    {
+        // Find the prefab by name
+        if (!prefabsByType.TryGetValue(prefabName, out var prefab))
+        {
+            Debug.LogError($"[ObjectManager] Cannot spawn {prefabName}, prefab not found. Using default prefab.");
+            return SpawnObject(position); // Fallback to default
+        }
+
+        // Generate unique ID
+        string id = Guid.NewGuid().ToString();
+
+        // Instantiate locally
+        var go = Instantiate(prefab, position, Quaternion.identity);
+        go.name = $"{prefabName}_{id}";
+        objects[id] = go;
+
+        Debug.Log($"[ObjectManager] Spawned {prefabName} at {position} with ID {id}");
+        return id;
+    }
+
+    /// <summary>
+    /// Legacy method for backward compatibility - now uses default prefab.
+    /// </summary>
+    [System.Obsolete("Use SpawnObject() instead. This method will be removed in a future version.")]
+    public string SpawnCube(Vector3 position)
+    {
+        Debug.LogWarning("[ObjectManager] SpawnCube is deprecated. Use SpawnObject() instead.");
+        return SpawnObject(position);
     }
 
     /// <summary>
@@ -118,12 +183,18 @@ public class ObjectManager : MonoBehaviour
         if (objects.ContainsKey(msg.id)) return;
 
         if (!prefabsByType.TryGetValue(msg.objectType, out var prefab))
-            prefab = prefabsByType.ContainsKey("Cube") ? prefabsByType["Cube"] : null;
-
-        if (prefab == null)
         {
-            Debug.LogError($"[ObjectManager] No prefab for type '{msg.objectType}'.");
-            return;
+            // Fallback to default prefab if specified type not found
+            if (prefabList.Count > 0 && defaultPrefabIndex < prefabList.Count)
+            {
+                prefab = prefabList[defaultPrefabIndex];
+                Debug.LogWarning($"[ObjectManager] Prefab '{msg.objectType}' not found, using default prefab '{prefab.name}'.");
+            }
+            else
+            {
+                Debug.LogError($"[ObjectManager] No prefab for type '{msg.objectType}' and no default prefab available.");
+                return;
+            }
         }
 
         var go = Instantiate(prefab);
